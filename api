@@ -1,0 +1,73 @@
+import OpenAI from "openai";
+
+const client = new OpenAI({
+
+  apiKey: process.env.OPENAI_API_KEY
+
+});
+
+export default async function handler(req, res) {
+
+  if (req.method !== "POST") {
+
+    return res.status(405).json({
+
+      error: "Method not allowed"
+
+    });
+
+  }
+
+  try {
+
+    const question = req.body?.message;
+
+    if (
+
+      typeof question !== "string" ||
+
+      !question.trim() ||
+
+      question.length > 4000
+
+    ) {
+
+      return res.status(400).json({
+
+        error: "Please enter a message under 4000 characters."
+
+      });
+
+    }
+
+    const response = await client.responses.create({
+
+      model: "gpt-6.2-astra",
+
+      instructions:
+
+        "You are Perchance AI, a helpful, friendly AI assistant. Answer questions clearly and accurately. If you don't know something, say so.",
+
+      input: question.trim()
+
+    });
+
+    return res.status(200).json({
+
+      reply: response.output_text
+
+    });
+
+  } catch (error) {
+
+    console.error("AI request failed:", error.message);
+
+    return res.status(500).json({
+
+      error: "Sorry, Perchance AI couldn't respond. Please try again."
+
+    });
+
+  }
+
+}
